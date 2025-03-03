@@ -15,7 +15,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/sale', salesRoutes);
+app.use('/api/sales', salesRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 
 // Error handling middleware
