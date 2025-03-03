@@ -16,4 +16,4 @@ const productSchema = new Schema<IProduct>({
   saleEndTime: { type: Date },
 });
 
-export default model<IProduct>('Product', productSchema);
+export const Product = model<IProduct>('Product', productSchema);

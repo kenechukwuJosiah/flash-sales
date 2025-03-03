@@ -1,19 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config';
-// import flashSaleRoutes from './routes/flashSale';
-// import leaderboardRoutes from './routes/leaderboard';
+import { authRoutes } from './routes';
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB();
 
-// // Routes
+// Routes
+app.use('/api/auth', authRoutes);
 // app.use('/api/flash-sale', flashSaleRoutes);
 // app.use('/api/leaderboard', leaderboardRoutes);
 
