@@ -5,7 +5,9 @@ import { protect } from '../middleware';
 
 const router = express.Router();
 
-// Fetch leaderboard
+// @route   POST /api/auth/login
+// @desc    Login user
+// @access  Public
 router.get('/', protect, getLeaderboard);
 
 export const leaderboardRoutes = router;

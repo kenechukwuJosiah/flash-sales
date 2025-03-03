@@ -1,46 +1,70 @@
 import mongoose from "mongoose";
 import { Product, Purchase } from "../models";
 import { Request, Response } from 'express';
-
+import { purchaseValidator } from "../validators";
 
 export const purchaseProduct = async (req: Request, res: Response) => {
-  const { productId } = req.body;
-  const userId = req.user._id;
 
   try {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const { error } = purchaseValidator.validate(req.body);
 
-    try {
-      const product = await Product.findById(productId).session(session);
-      
-      if (!product || product.availableUnits <= 0) {
-        throw new Error('Product out of stock');
-      }
-
-      product.availableUnits -= 1;
-      await product.save({ session });
-
-      const purchase = new Purchase({ userId, productId });
-      await purchase.save({ session });
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).json({ success: true, message: 'Purchase successful' });
-    } catch (err: any) {
-      await session.abortTransaction();
-      session.endSession();
-
-      res.status(400).json({ success: false, message: err.message });
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message });
     }
+
+  const { productId, quantity } = req.body;
+  const userId = req.user._id;
+
+    const product = await Product.findOne(
+      {
+        _id: productId,
+      }
+    ).select('availableUnits saleEndTime');
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (product.saleEndTime && product.saleEndTime < new Date()) {
+      return res.status(400).json({ success: false, message: 'Flash sale has ended' });
+    }
+
+    if (product.availableUnits < quantity) {
+      return res.status(400).json({ success: false, message: 'Quantity exceeds available stock' });
+    }
+
+    await Product.findOneAndUpdate(
+      { _id: productId },
+      { $inc: { availableUnits: -quantity } }
+    );
+
+    const purchase = new Purchase({
+      userId,
+      productId,
+      quantity,
+    });
+    await purchase.save();
+
+    res.status(200).json({ success: true, message: 'Purchase successful' });
   } catch (err: any) {
     res.status(400).json({ success: false, message: err.message });
   }
-}
+};
+
 
 
 export const getProduct = async (req: Request, res: Response) => {
   const product = await Product.findById(req.params.productId);
-  res.status(200).json({ availableUnits: product?.availableUnits });
+
+  if (!product) {
+    return res.status(404).json({ success: false, message: 'Product not found' });
+  }
+
+  res.status(200).json({ success: true, data: {
+    name: product?.name,
+    totalUnits: product?.totalUnits,
+    availableUnits: product?.availableUnits,
+    saleStartTime: product?.saleStartTime,
+    saleEndTime: product?.saleEndTime,
+  },  });
 }
