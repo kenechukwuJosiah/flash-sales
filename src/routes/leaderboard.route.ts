@@ -7,4 +7,4 @@ const router = express.Router();
 // Fetch leaderboard
 router.get('/', getLeaderboard);
 
-export default router;
+export const leaderboardRoutes = router;

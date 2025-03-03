@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config';
-import { authRoutes } from './routes';
+import { authRoutes, leaderboardRoutes, salesRoutes } from './routes';
 
 const app = express();
 
@@ -15,8 +15,8 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/flash-sale', flashSaleRoutes);
-// app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/sale', salesRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
